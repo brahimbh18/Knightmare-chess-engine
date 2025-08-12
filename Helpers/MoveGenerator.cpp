@@ -8,25 +8,29 @@ MoveGenerator::MoveGenerator(const GameState& gameState): gameState(gameState) {
 std::vector<Position> MoveGenerator::getLegalMoves(Piece* piece, Position src) {
     std::string type = piece->getType();
     if (type == "Pawn") {
-        return getLegalPawnMoves(piece, src);
+        return getLegalPawnMoves(src);
     } else if (type == "King") {
-        return getLegalKingMoves(piece, src);
+        return getLegalKingMoves(src);
     } else if (type == "Queen") {
-        return getLegalQueenMoves(piece, src);
+        return getLegalQueenMoves(src);
     } else if (type == "Rook") {
-        return getLegalRookMoves(piece, src);
+        return getLegalRookMoves(src);
     } else if (type == "Bishop") {
-        return getLegalBishopMoves(piece, src);
+        return getLegalBishopMoves(src);
     } else if (type == "Knight") {
-        return getLegalKnightMoves(piece, src);
+        return getLegalKnightMoves(src);
     }
     
     // Return empty vector if piece type is not recognized
     return std::vector<Position>();
 } 
 
-std::vector<Position> MoveGenerator::getLegalPawnMoves(Piece *piece, Position src) {
+std::vector<Position> MoveGenerator::getLegalPawnMoves(Position src) {
     std::vector<Position> legalMoves;
+    
+    // Get piece color from the source position
+    Piece* piece = gameState.getBoard().getPieceAtIndex(src.getRow(), src.getColumn());
+    if (piece == nullptr) return legalMoves;
     
     std::string color = piece->getColor();
     int direction = (color == "white") ? 1 : -1;
@@ -46,20 +50,18 @@ std::vector<Position> MoveGenerator::getLegalPawnMoves(Piece *piece, Position sr
     
     // Diagonal captures
     int captureDirs[2] = {-1, 1};
+    Position *ep = gameState.getEnPassant();
     for (int colDir : captureDirs) {
         Position capture(src.getRow() + direction, src.getColumn() + colDir);
-        if (isInsideBoard(capture) && isEnemyPiece(capture)) {
+        if (isInsideBoard(capture) && (isEnemyPiece(capture) || (ep && Position::equals(capture, *ep)))) {
             legalMoves.push_back(capture);
         }
     }
-    
-    // TODO: Add en passant logic later
-    
     return legalMoves;
 }
-std::vector<Position> MoveGenerator::getLegalKingMoves(Piece *piece, Position src) {
+std::vector<Position> MoveGenerator::getLegalKingMoves(Position src) {
     int directions[8][2] = {{1, 0}, {1, 1}, {1, -1}, {-1, 0}, {-1, 1}, {-1, -1}, {0, 1}, {0, -1}};
-    std::vector<Position> moves =  getSingleStepMoves(src, directions);
+    std::vector<Position> moves =  getSingleStepMoves(src, directions, 8);
     std::vector<Position> legalMoves;
     std::string enemyColor = (gameState.getCurrentPlayer() == "white") ? "black" : "white";
     for (Position &position : moves) {
@@ -70,28 +72,28 @@ std::vector<Position> MoveGenerator::getLegalKingMoves(Piece *piece, Position sr
 
     return legalMoves;
 }
-std::vector<Position> MoveGenerator::getLegalQueenMoves(Piece *piece, Position src) {
+std::vector<Position> MoveGenerator::getLegalQueenMoves(Position src) {
     int directions[8][2] = {{1, 0}, {1, 1}, {1, -1}, {-1, 0}, {-1, 1}, {-1, -1}, {0, 1}, {0, -1}};
-    return getLinearMoves(src, directions);
+    return getLinearMoves(src, directions, 8);
 }
-std::vector<Position> MoveGenerator::getLegalRookMoves(Piece *piece, Position src) {
+std::vector<Position> MoveGenerator::getLegalRookMoves(Position src) {
     int directions[4][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-    return getLinearMoves(src, directions);
+    return getLinearMoves(src, directions, 4);
 }
-std::vector<Position> MoveGenerator::getLegalBishopMoves(Piece *piece, Position src) {
+std::vector<Position> MoveGenerator::getLegalBishopMoves(Position src) {
     int directions[4][2] = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
-    return getLinearMoves(src, directions);
+    return getLinearMoves(src, directions, 4);
 }
-std::vector<Position> MoveGenerator::getLegalKnightMoves(Piece *piece, Position src) {
+std::vector<Position> MoveGenerator::getLegalKnightMoves(Position src) {
     int directions[8][2] = {{2, 1}, {2, -1}, {-2, 1}, {-2, -1}, {1, 2}, {1, -2}, {-1, 2}, {-1, -2}};
-    return getSingleStepMoves(src, directions);
+    return getSingleStepMoves(src, directions, 8);
 }
 
-std::vector<Position> MoveGenerator::getLinearMoves(Position src, int directions[][2]) {
+std::vector<Position> MoveGenerator::getLinearMoves(Position src, int directions[][2], int directionsCount) {
     std::vector<Position> legalMoves;
     
     // For each direction, move as far as possible until blocked
-    for (int i = 0; i < sizeof(directions)/sizeof(directions[0]); i++) {
+    for (int i = 0; i < directionsCount; i++) {
         int row = src.getRow();
         int col = src.getColumn();
         
@@ -120,10 +122,10 @@ std::vector<Position> MoveGenerator::getLinearMoves(Position src, int directions
     return legalMoves;
 }
 
-std::vector<Position> MoveGenerator::getSingleStepMoves(Position src, int directions[][2]) {
+std::vector<Position> MoveGenerator::getSingleStepMoves(Position src, int directions[][2], int directionsCount) {
     std::vector<Position> legalMoves;
     
-    for (int i = 0; i < sizeof(directions)/sizeof(directions[0]); i++) {
+    for (int i = 0; i < directionsCount; i++) {
         Position newPosition(src.getRow() + directions[i][0], src.getColumn() + directions[i][1]);
         if (isInsideBoard(newPosition) &&
             (emptySquare(newPosition) ||

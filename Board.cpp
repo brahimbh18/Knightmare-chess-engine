@@ -1,4 +1,5 @@
 #include "Board.h"
+#include "Helpers/Position.h"
 #include <iostream>
 
 void Board::printBoard() const {
@@ -28,7 +29,33 @@ void Board::printBoard() const {
 }
 
 Piece* Board::getPieceAtIndex(int row, int col) const {
-    return board[row][col].get();
+    if (row >= 0 && row < 8 &&
+        col >= 0 && col < 8)
+        return board[row][col].get();
+    return nullptr;
+}
+
+Piece* Board::getPieceAtPosition(Position position) const {
+    int row = position.getRow();
+    int col = position.getColumn();
+    return getPieceAtIndex(row, col);
+}
+
+
+void Board::removePieceAtPosition(Position position) {
+    if (!isInsideBoard(position)) return;
+    int row = position.getRow();
+    int col = position.getColumn();
+    board[row][col].reset();
+}
+
+bool Board::isInsideBoard(int row, int col) const {
+    return row >= 0 && row < 8 &&
+           col >= 0 && col < 8;
+}
+
+bool Board::isInsideBoard(Position position) const {
+    return isInsideBoard(position.getRow(), position.getColumn());
 }
 
 void Board::setBoardFromFEN(const std::string& fenBoard) {
@@ -44,4 +71,40 @@ void Board::setBoardFromFEN(const std::string& fenBoard) {
             board[row][col++] = Piece::generatePieceByFENCHAR(c);
         }
     }
+}
+
+void Board::movePiece(const Position& src, const Position& dest) {
+    int sr = src.getRow();
+    int sc = src.getColumn();
+    int dr = dest.getRow();
+    int dc = dest.getColumn();
+    if (board[sr][sc] == nullptr) {
+        return;
+    }
+    board[dr][dc] = std::move(board[sr][sc]);
+    board[sr][sc].reset();
+}
+
+std::string Board::toFENBoard() const {
+    std::string result;
+    for (int row = 7; row >= 0; --row) {
+        int emptyCount = 0;
+        for (int col = 0; col < 8; ++col) {
+            const Piece* p = board[row][col].get();
+            if (p == nullptr) {
+                ++emptyCount;
+            } else {
+                if (emptyCount > 0) {
+                    result += char('0' + emptyCount);
+                    emptyCount = 0;
+                }
+                char pieceChar = p->getType()[0];
+                if (p->getColor() == "black") pieceChar = std::tolower(pieceChar);
+                result += pieceChar;
+            }
+        }
+        if (emptyCount > 0) result += char('0' + emptyCount);
+        if (row > 0) result += '/';
+    }
+    return result;
 }

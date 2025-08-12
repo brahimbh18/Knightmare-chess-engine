@@ -16,9 +16,9 @@ class Position {
         Position(int, int);
         Position(std::string);
 
-        int getRow();
-        int getColumn();
-        std::string getAlgebraic();
-        
+        int getRow() const;
+        int getColumn() const;
+        std::string getAlgebraic() const;
+        static bool equals(Position p1, Position p2);
 };
 #endif

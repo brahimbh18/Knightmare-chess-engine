@@ -14,7 +14,7 @@ class GameState {
     private:
         Board board;
         std::string currentPlayer; //black or white
-        std::unique_ptr<Position> enpassantTarget;
+        Position *enpassantTarget;
         int castlingRights;
         int halfMoveClock;
         int fullMoveNumber;
@@ -29,10 +29,16 @@ class GameState {
         };
         
         std::vector<std::string> splitFEN(const std::string&);
+        std::string castlingToFEN() const;
     public:
         GameState(std::string);
         const Board& getBoard() const;
         bool validateMove(Move) const;
         const std::string getCurrentPlayer() const;
+        void applyMove(const Move& move);
+        std::string toFEN() const;
+        Position* getEnPassant() const;
+        Piece* getPieceAtPosition(Position position) const;
+        void removePieceAtPosition(Position position);
 };
 #endif

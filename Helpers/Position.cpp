@@ -21,17 +21,22 @@ void Position::setCoordsFromAlgebraic() {
 void Position::setAlgebraicFromCoords() {
     algebraic.clear();
     algebraic.push_back(static_cast<char>('a' + col));
-    algebraic.push_back(static_cast<char>('0' + row));
+    algebraic.push_back(static_cast<char>('1' + row));
 }
 
-int Position::getRow() {
+int Position::getRow() const {
     return row;
 }
 
-int Position::getColumn() {
+int Position::getColumn() const {
     return col;
 }
 
-std::string Position::getAlgebraic() {
+std::string Position::getAlgebraic() const {
     return algebraic;
+}
+
+bool Position::equals(Position p1, Position p2) {
+    return p1.getRow() == p2.getRow() && 
+           p1.getColumn() == p2.getColumn();
 }
