@@ -24,8 +24,6 @@ Designed for backend API integration (Spring Boot, Go, etc.) and built with a cl
 
 ### Build & Run
 ```bash
-# Build
-make
 
 # Test API functions
 make test-api
