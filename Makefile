@@ -2,46 +2,38 @@
 
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -g
+CXXFLAGS = -std=c++17 -Wall -Wextra -g -Iinclude
 
 # Directories
-SRCDIR = .
-PIECESDIR = Pieces
+SRCDIR = src
 BUILDDIR = build
 
-# Source files
-SOURCES = main.cpp \
-          Piece.cpp \
-          Board.cpp \
-          GameState.cpp \
-          Helpers/Position.cpp \
-          Helpers/MoveValidator.cpp \
-          Helpers/MoveGenerator.cpp \
-          Helpers/EngineAPI.cpp
+# Find all source files in src/ (recursively)
+SOURCES := $(shell find $(SRCDIR) -name '*.cpp')
+OBJECTS := $(patsubst $(SRCDIR)/%.cpp, $(BUILDDIR)/%.o, $(SOURCES))
 
-# Object files in build directory
-OBJECTS = $(addprefix $(BUILDDIR)/, $(SOURCES:.cpp=.o))
-
-# Target executable in build directory
-TARGET = $(BUILDDIR)/chess_engine
+# Test target
+TEST_SRC = tests/test_api.cpp
+TEST_OBJ = $(patsubst %.cpp, $(BUILDDIR)/%.o, $(TEST_SRC))
 TEST_TARGET = $(BUILDDIR)/test_api
 
 # Default target
-all: $(TARGET)
+all: $(TEST_TARGET)
 
 # Ensure build directory exists
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
 
-# Link the executable
-$(TARGET): $(OBJECTS) | $(BUILDDIR)
-	$(CXX) $(OBJECTS) -o $(TARGET)
+# Build the test executable
+$(TEST_TARGET): $(OBJECTS) $(TEST_OBJ) | $(BUILDDIR)
+	$(CXX) $(CXXFLAGS) $(OBJECTS) $(TEST_OBJ) -o $(TEST_TARGET)
 
-# Build test API program
-$(TEST_TARGET): test_api.cpp $(filter-out build/main.o, $(OBJECTS)) | $(BUILDDIR)
-	$(CXX) $(CXXFLAGS) test_api.cpp $(filter-out build/main.o, $(OBJECTS)) -o $(TEST_TARGET)
+# Compile .cpp to .o (mirror folder structure inside build/)
+$(BUILDDIR)/%.o: $(SRCDIR)/%.cpp | $(BUILDDIR)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Compile source files to object files in build directory
+# Compile tests separately
 $(BUILDDIR)/%.o: %.cpp | $(BUILDDIR)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -50,22 +42,8 @@ $(BUILDDIR)/%.o: %.cpp | $(BUILDDIR)
 clean:
 	rm -rf $(BUILDDIR)
 
-# Run the program (example with FEN string)
-run: $(TARGET)
-	./$(TARGET) "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-
-# Test the API functions
+# Run the tests
 test-api: $(TEST_TARGET)
 	./$(TEST_TARGET)
 
-# Quick tests of API
-run-move: $(TARGET)
-	@echo "Applying e2e4..."
-	@./$(TARGET) >/dev/null || true
-
-run-legal: $(TARGET)
-	@echo "Listing legal moves for e2..."
-	@./$(TARGET) >/dev/null || true
-
-# Phony targets
-.PHONY: all clean run test-api run-move run-legal 
+.PHONY: all clean test-api

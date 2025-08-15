@@ -1,4 +1,4 @@
-#include "Piece.h"
+#include "../include/Piece.h"
 
 Piece::Piece(const std::string& type, const std::string& color): type(type), color(color) {}
 

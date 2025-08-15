@@ -1,10 +1,9 @@
-#include "EngineAPI.h"
-
-#include "../GameState.h"
-#include "Position.h"
-#include "Move.h"
-#include "MoveValidator.h"
-#include "MoveGenerator.h"
+#include "../../include/api/EngineAPI.h"
+#include "../../include/Engine/GameState.h"
+#include "../../include/Helpers/Position.h"
+#include "../../include/Helpers/Move.h"
+#include "../../include/Engine/MoveValidator.h"
+#include "../../include/Engine/MoveGenerator.h"
 
 std::pair<bool, std::string> applyMoveIfLegal(const std::string& fen,
                                               const std::string& srcAlgebraic,
@@ -28,7 +27,7 @@ std::vector<std::string> getLegalMovesForPosition(const std::string& fen,
                                                   const std::string& positionAlgebraic) {
     GameState gameState(fen);
     Position src(positionAlgebraic);
-    Piece* piece = gameState.getBoard().getPieceAtIndex(src.getRow(), src.getColumn());
+    Piece* piece = gameState.getBoard().getPieceAtPosition(src);
     if (piece == nullptr) {
         return {};
     }

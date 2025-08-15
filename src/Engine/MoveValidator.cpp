@@ -1,6 +1,6 @@
-#include "MoveValidator.h"
-#include "MoveGenerator.h"
-#include "Position.h"
+#include "../../include/Engine/MoveValidator.h"
+#include "../../include/Engine/MoveGenerator.h"
+#include "../../include/Helpers/Position.h"
 #include <vector>
 
 MoveValidator::MoveValidator(const GameState& gameState, Move move): gameState(gameState), move(move) {}

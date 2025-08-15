@@ -1,5 +1,6 @@
-#include "Board.h"
-#include "Helpers/Position.h"
+#include "../../include/Engine/Board.h"
+#include "../../include/Helpers/Position.h"
+#include <cstddef>
 #include <iostream>
 
 void Board::printBoard() const {
@@ -29,13 +30,13 @@ void Board::printBoard() const {
 }
 
 Piece* Board::getPieceAtIndex(int row, int col) const {
-    if (row >= 0 && row < 8 &&
-        col >= 0 && col < 8)
+    if (isInsideBoard(row, col))
         return board[row][col].get();
     return nullptr;
 }
 
 Piece* Board::getPieceAtPosition(Position position) const {
+    if (!isInsideBoard(position)) return nullptr;
     int row = position.getRow();
     int col = position.getColumn();
     return getPieceAtIndex(row, col);
@@ -107,4 +108,8 @@ std::string Board::toFENBoard() const {
         if (row > 0) result += '/';
     }
     return result;
+}
+
+bool Board::emptySquare(Position position) const {
+    return getPieceAtPosition(position) == nullptr;
 }

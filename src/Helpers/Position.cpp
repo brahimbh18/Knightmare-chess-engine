@@ -1,4 +1,4 @@
-#include "Position.h"
+#include "../../include/Helpers/Position.h"
 #include <cctype>
 
 Position::Position(int row, int col): row(row), col(col) {

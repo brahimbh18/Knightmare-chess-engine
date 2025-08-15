@@ -1,7 +1,8 @@
-#include "GameState.h"
-#include "Helpers/Position.h"
-#include "Piece.h"
+#include "../../include/Engine/GameState.h"
+#include "../../include/Helpers/Position.h"
+#include "../../include/Piece.h"
 #include <cctype>
+#include <vector>
 
 GameState::GameState(std::string fen) {
     std::vector<std::string> parts = splitFEN(fen);
@@ -161,4 +162,104 @@ Piece* GameState::getPieceAtPosition(Position position) const {
 
 void GameState::removePieceAtPosition(Position position) {
     board.removePieceAtPosition(position);
+}
+
+bool GameState::isSquareAttacked(const Position sq, const std::string attacker) const {
+    bool pawnAttack = isSquareAttackedByPawn(sq, attacker);
+    bool knightAttack = isSquareAttackedByKnight(sq, attacker);
+    bool linearAttack = isSquareAttackedByRay(sq, attacker);
+    bool kingAttack = isSquareAttackedByKing(sq, attacker);
+
+    return pawnAttack || knightAttack || linearAttack || kingAttack;
+}
+
+bool GameState::isSquareAttackedByPawn(const Position sq, const std::string attacker) const {
+    int dir = attacker == "white" ? -1 : 1;
+    int row = sq.getRow(), col = sq.getColumn();
+    std::vector<Position> attacks = {Position(row + dir, col + 1), Position(row + dir, col - 1)};
+    for (const Position &position : attacks) {
+        Piece *piece = getPieceAtPosition(position);
+        if (piece && piece->getType() == "Pawn" &&  piece->getColor() == attacker) return true;
+    }
+    
+    return false;
+}
+
+bool GameState::isSquareAttackedByKnight(const Position sq, const std::string attacker) const {
+    static const int knightMoves[8][2] = {
+        {2, 1}, {2, -1}, {-2, 1}, {-2, -1}, {1, 2}, {1, -2}, {-1, 2}, {-1, -2}
+    };
+
+    int row = sq.getRow(), col = sq.getColumn();
+    for (int i = 0; i < 8; i++) {
+        int r = knightMoves[i][0], c = knightMoves[i][1];
+        Piece *piece = getPieceAtPosition(Position(row + r, col + c));
+
+        if (piece && piece->getColor() == attacker && piece->getType() == "Knight") return true;
+    }
+    return false;
+}
+
+bool GameState::isSquareAttackedByRay(const Position sq, const std::string attacker) const {
+    static const int oblique[4][2] = {{1,1},{1,-1},{-1,1},{-1,-1}};
+    static const int staight[4][2] = {{1,0},{-1,0},{0,1},{0,-1}};
+    
+    int row = sq.getRow(), col = sq.getColumn();
+
+    for (int i = 0; i < 4; i++) {
+        int r = oblique[i][0], c = oblique[i][1];
+
+        Position position(row + r, col + c);
+        while (true) {
+            if (!board.isInsideBoard(position)) break;
+            
+            Piece *piece = getPieceAtPosition(position);
+            if (piece) {
+                if ((piece->getType() == "Queen" || piece->getType() == "Bishop") && piece->getColor() == attacker) return true;
+                break;
+            }
+            
+            position = Position(position.getRow() + r, position.getColumn() + c);
+        }
+    }
+
+    for (int i = 0; i < 4; i++) {
+        int r = staight[i][0], c = staight[i][1];
+   
+        Position position(row + r, col + c);
+        while (true) {
+            if (!board.isInsideBoard(position)) break;
+            
+            Piece *piece = getPieceAtPosition(position);
+            if (piece) {
+                if ((piece->getType() == "Queen" || piece->getType() == "Rook") && piece->getColor() == attacker) return true;
+                break;
+            }
+            
+            position = Position(position.getRow() + r, position.getColumn() + c);
+        }
+    }
+    return false;
+}
+bool GameState::isSquareAttackedByKing(const Position sq, const std::string attacker) const {
+    static const int dirs[8][2] = {{1,1},{1,-1},{-1,1},{-1,-1}, {1,0},{-1,0},{0,1},{0,-1}};
+    
+    int row = sq.getRow(), col = sq.getColumn();
+    std::vector<Position> attacks;
+
+    for (int i = 0; i < 8; i++) {
+        int r = dirs[i][0], c = dirs[i][1];
+        
+        Piece *piece = getPieceAtPosition(Position(row + r, col + c));
+        if (piece && piece->getType() == "King" &&  piece->getColor() == attacker) return true;
+    }
+    return false;
+}
+
+int GameState::getCastlingRights() const {
+    return castlingRights;
+}
+
+bool GameState::emptySquare(Position position) const {
+    return board.emptySquare(position);
 }

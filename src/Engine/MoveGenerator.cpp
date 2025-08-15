@@ -1,11 +1,12 @@
-#include "MoveGenerator.h"
-#include "MoveValidator.h"
-#include "Position.h"
+#include "../../include/Engine/MoveGenerator.h"
+#include "../../include/Engine/MoveValidator.h"
+#include "../../include/Helpers/Position.h"
 #include <vector>
 
 MoveGenerator::MoveGenerator(const GameState& gameState): gameState(gameState) {}
 
 std::vector<Position> MoveGenerator::getLegalMoves(Piece* piece, Position src) {
+    // if (piece->getColor()[0] != gameState.getCurrentPlayer()[0]) return std::vector<Position>();
     std::string type = piece->getType();
     if (type == "Pawn") {
         return getLegalPawnMoves(src);
@@ -21,7 +22,6 @@ std::vector<Position> MoveGenerator::getLegalMoves(Piece* piece, Position src) {
         return getLegalKnightMoves(src);
     }
     
-    // Return empty vector if piece type is not recognized
     return std::vector<Position>();
 } 
 
@@ -65,12 +65,64 @@ std::vector<Position> MoveGenerator::getLegalKingMoves(Position src) {
     std::vector<Position> legalMoves;
     std::string enemyColor = (gameState.getCurrentPlayer() == "white") ? "black" : "white";
     for (Position &position : moves) {
-        if (!isSquareAttacked(position, enemyColor)) {
+        if (!gameState.isSquareAttacked(position, enemyColor)) {
             legalMoves.push_back(position);
         }
     }
+    int castlingRights = gameState.getCastlingRights();
+    if (castlingRights == 0 || gameState.isSquareAttacked(src, enemyColor)) return legalMoves;
+
+    if (gameState.getCurrentPlayer() == "white") {
+        Piece *rook1 = gameState.getBoard().getPieceAtPosition(Position("h1"));
+        Piece *rook2 = gameState.getBoard().getPieceAtPosition(Position("a1"));
+        if ((castlingRights & GameState::WHITE_KINGSIDE) && validRook(rook1, "white")) {
+            Position p1("f1"), p2("g1");
+            if (emptySquare(p1) && emptySquare(p2) && 
+                !gameState.isSquareAttacked(p1, enemyColor) &&
+                !gameState.isSquareAttacked(p2, enemyColor
+            )) {
+                legalMoves.push_back(Position(p2));
+            }
+        }
+        if ((castlingRights & GameState::WHITE_QUEENSIDE) && validRook(rook2, "white")) {
+            Position p1("d1"), p2("c1"), p3("b1");
+            if (emptySquare(p1) && emptySquare(p2) && emptySquare(p3) &&
+                !gameState.isSquareAttacked(p1, enemyColor) && 
+                !gameState.isSquareAttacked(p2, enemyColor)
+            ) {
+                legalMoves.push_back(Position(p2));
+            }
+        }
+        
+    } else {
+        Piece *rook1 = gameState.getBoard().getPieceAtPosition(Position("h8"));
+        Piece *rook2 = gameState.getBoard().getPieceAtPosition(Position("a8"));
+        if ((castlingRights & GameState::BLACK_KINGSIDE) && validRook(rook1, "black")) {
+            Position p1("f8"), p2("g8");
+            if (emptySquare(p1) && emptySquare(p2) && 
+                !gameState.isSquareAttacked(p1, enemyColor) &&
+                !gameState.isSquareAttacked(p2, enemyColor
+            )) {
+                legalMoves.push_back(Position(p2));
+            }
+        }
+        if ((castlingRights & GameState::BLACK_QUEENSIDE) && validRook(rook2, "black")) {
+            Position p1("d8"), p2("c8"), p3("b8");
+            if (emptySquare(p1) && emptySquare(p2) && emptySquare(p3) &&
+                !gameState.isSquareAttacked(p1, enemyColor) && 
+                !gameState.isSquareAttacked(p2, enemyColor)
+            ) {
+                legalMoves.push_back(Position(p2));
+            }
+        }
+        
+    }
 
     return legalMoves;
+}
+
+bool MoveGenerator::validRook(const Piece *piece, const std::string& color) {
+    return piece && piece->getType() == "Rook" && piece->getColor() == color; 
 }
 std::vector<Position> MoveGenerator::getLegalQueenMoves(Position src) {
     int directions[8][2] = {{1, 0}, {1, 1}, {1, -1}, {-1, 0}, {-1, 1}, {-1, -1}, {0, 1}, {0, -1}};
@@ -92,12 +144,10 @@ std::vector<Position> MoveGenerator::getLegalKnightMoves(Position src) {
 std::vector<Position> MoveGenerator::getLinearMoves(Position src, int directions[][2], int directionsCount) {
     std::vector<Position> legalMoves;
     
-    // For each direction, move as far as possible until blocked
     for (int i = 0; i < directionsCount; i++) {
         int row = src.getRow();
         int col = src.getColumn();
         
-        // Move in this direction until blocked
         while (true) {
             row += directions[i][0];
             col += directions[i][1];
@@ -105,16 +155,16 @@ std::vector<Position> MoveGenerator::getLinearMoves(Position src, int directions
             Position newPos(row, col);
             
             if (!isInsideBoard(newPos)) {
-                break; // Out of board
+                break;
             }
             
             if (emptySquare(newPos)) {
                 legalMoves.push_back(newPos);
             } else if (isEnemyPiece(newPos)) {
-                legalMoves.push_back(newPos); // Can capture enemy piece
-                break; // Can't move further
+                legalMoves.push_back(newPos);
+                break;
             } else {
-                break; // Blocked by own piece
+                break;
             }
         }
     }
@@ -139,24 +189,8 @@ std::vector<Position> MoveGenerator::getSingleStepMoves(Position src, int direct
     return legalMoves;
 }
 
-
-bool MoveGenerator::isSquareAttacked(Position position, std::string enemyColor) {
-    for (int i = 0; i < 7; i++) {
-        for (int j = 0; j < 7; j++) {
-            if (gameState.getBoard().getPieceAtIndex(i, j)->getColor() == enemyColor) {
-                Move move(Position(i, j), position);
-                MoveValidator v(gameState, move);
-                if (v.validateMove()) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-
 bool MoveGenerator::emptySquare(Position position) {
-    return gameState.getBoard().getPieceAtIndex(position.getRow(), position.getColumn()) == nullptr;
+    return gameState.emptySquare(position);
 }
 
 bool MoveGenerator::isEnemyPiece(Position position) {

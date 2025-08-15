@@ -4,8 +4,8 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include "Piece.h"
-#include "Helpers/Position.h"
+#include "../Piece.h"
+#include "../Helpers/Position.h"
 
 class Board {
     private:
@@ -21,6 +21,6 @@ class Board {
         void removePieceAtPosition(Position position);
         bool isInsideBoard(int row, int col) const;
         bool isInsideBoard(Position position) const;
-        
+        bool emptySquare(Position position) const;
 };
 #endif

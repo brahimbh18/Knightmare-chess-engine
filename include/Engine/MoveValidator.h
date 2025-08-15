@@ -1,9 +1,9 @@
 #ifndef MOVEVALIDATOR_H
 #define MOVEVALIDATOR_H
 
-#include "Position.h"
-#include "Move.h"
-#include "../GameState.h"
+#include "../Helpers/Position.h"
+#include "../Helpers/Move.h"
+#include "GameState.h"
 #include <vector>
 
 class MoveValidator {

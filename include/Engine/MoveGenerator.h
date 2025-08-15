@@ -1,9 +1,9 @@
 #ifndef MOVEGENERATOR_H
 #define MOVEGENERATOR_H
 
-#include "Position.h"
-#include "Move.h"
-#include "../GameState.h"
+#include "../Helpers/Position.h"
+#include "../Helpers/Move.h"
+#include "../Engine/GameState.h"
 #include <vector>
 
 class MoveGenerator {
@@ -20,11 +20,11 @@ class MoveGenerator {
         std::vector<Position> getLinearMoves(Position src, int directions[][2], int directionsCount);
         std::vector<Position> getSingleStepMoves(Position src, int directions[][2], int directionsCount);
         
+
+        bool validRook(const Piece *piece, const std::string& color);
         bool emptySquare(Position position);
         bool isEnemyPiece(Position position);
         bool isInsideBoard(Position position);
-        bool isSquareAttacked(Position position, std::string enemyColor);
-        
     public:
         MoveGenerator(const GameState& gameState);
         
