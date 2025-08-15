@@ -1,40 +1,49 @@
-♟️ C++ Chess Engine Prototype
-📌 Overview
+# ♟️ C++ Chess Engine Prototype
 
-This is an early-stage, scalable C++ chess engine prototype.
-It works entirely from FEN (Forsyth–Edwards Notation) input and can:
+A scalable, FEN-based chess engine written in modern C++.
+Generates legal moves or applies a move to return the new FEN.
+Designed for backend API integration (Spring Boot, Go, etc.) and built with a clean, extensible architecture for future search algorithms.
 
-Generate all legal moves for a given position
+## ✨ Features
 
-Apply a move to a given FEN and return the updated FEN
+- **🎯 Move Validation** – Validates chess moves using FEN positions
+- **🚀 Legal Move Generation** – Generates all legal moves for any piece position
+- **🔒 King Safety** – Checks attacks and ensures king safety rules
+- **🏰 Castling Support** – Validates and manages castling rights
+- **♟️ En Passant** – Implements en passant capture logic
+- **📊 FEN Parsing** – Reads and generates Forsyth–Edwards Notation
+- **🔧 API Ready** – Stateless design for backend integration
+- **⚡ Performance** – Efficient move generation and memory usage
 
-Although currently a standalone engine, it is designed for future Spring Boot backend integration and to serve as the foundation for adding AI search algorithms.
+## 🚀 Quick Start
 
-✨ Features
+### Prerequisites
+- C++ compiler (C++17 or later)
+- GNU Make
+- Linux/macOS (tested on Arch Linux)
 
-FEN parsing & validation
+### Build & Run
+```bash
+# Build
+make
 
-Legal move generation (all pieces)
+# Test API functions
+make test-api
+```
 
-Castling & en passant support
 
-Move application with updated FEN
+## 🛠️ Current Goals
 
-🚧 Current Goals
+- **♙ Add pawn promotion**
+- **🔌 Finish Spring Boot integration**
+- **🧠 Implement basic evaluation function**
+- **⚡ Prepare framework for search algorithms**
 
-♙ Add pawn promotion
-
-🔌 Complete Spring Boot integration
-
-🧠 Implement basic evaluation function
-
-⚡ Prepare for search algorithms (minimax, alpha-beta)
-
-🛠 Build & Run
-    make test-api
-    ./build/test_api
-
-📜 Status
+## 📜 Status
 
 Prototype stage — functional but evolving.
-Chess programming is vast, and this is the foundation for bigger things ahead.
+Core move generation and validation are implemented, but promotions, backend connectivity, and advanced AI are still planned.
+
+---
+
+**Built with ❤️ for the chess programming community**
